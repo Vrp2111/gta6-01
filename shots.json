@@ -1,6 +1,6 @@
 [
-  { "name": "1-chase.jpg", "query": "?shot=chase&seed=96321" },
-  { "name": "2-onfoot.jpg", "query": "?shot=onfoot&seed=96321" },
-  { "name": "3-mission.jpg", "query": "?shot=mission&seed=96321" },
-  { "name": "4-start.jpg", "query": "?shot=start&seed=96321" }
+ {"name":"1-chase.jpg","query":"?shot=chase&seed=96321"},
+ {"name":"2-onfoot.jpg","query":"?shot=onfoot&seed=96321"},
+ {"name":"3-mission.jpg","query":"?shot=mission&seed=96321"},
+ {"name":"4-start.jpg","query":"?shot=start&seed=96321"}
 ]

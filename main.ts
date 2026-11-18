@@ -1,31 +1,14 @@
-// LUMEN BAY packages an offline 3D coastal city and four gameplay captures.
-// Golden-hour streets, the Solstice GT and crew-run jobs anchor every local shot.
-// Run node serve.ts to explore the city locally.
-
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
-
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
-
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'game'), join(out, 'game'), { recursive: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
-
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
-// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in game/ or 48 MiB of game
-// files, in all, or a path under game/ over 1000 bytes: game/ counts beside /output's own 1000-entry cap, its
-// screenshots/ and dossier.json).
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, {
-    text_max_bytes: 163840,
-    screenshots: { max: 4, max_bytes: 262144 },
-    game_max_files: 993,
-    game_max_bytes: 50331648,
-    game_path_max_bytes: 1000,
-  }),
-);
+import { cp, mkdir, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+// Batch 2 repair: package the fully rewritten procedural coastal game.
+const source=fileURLToPath(new URL('.',import.meta.url));
+const output=resolve(process.env.MAKEFUN_OUTPUT_DIR||'/output');
+await mkdir(output,{recursive:true});
+await cp(resolve(source,'game'),resolve(output,'game'),{recursive:true});
+await cp(resolve(source,'screenshots'),resolve(output,'screenshots'),{recursive:true});
+const caps={text_max_bytes:163840,screenshots:{max:4,max_bytes:262144},game_max_files:993,game_max_bytes:48*1024*1024,game_path_max_bytes:1000};
+const dossier=await buildDossier(output,caps);
+await writeFile(resolve(output,'dossier.json'),dossier);
+console.log('Lumen Bay dossier written to '+output);
