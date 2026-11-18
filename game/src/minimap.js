@@ -1,11 +1,1 @@
-// Compact DOM minimap: street grid, player heading and nearby police pins.
-export function makeMinimap() {
-  const root = document.createElement('div'); root.className = 'minimap'; root.innerHTML = '<div class="map-grid"></div><div class="map-road r1"></div><div class="map-road r2"></div><div class="map-road r3"></div><div class="map-road r4"></div><i class="map-pin player-pin">▲</i><i class="map-pin cop-pin c1">●</i><i class="map-pin cop-pin c2">●</i><i class="map-pin objective-pin">◆</i><span class="map-n">N</span>';
-  return { root, update(x,z,yaw,active=true) {
-    root.classList.toggle('map-onfoot',!active);
-    const px = Math.max(8,Math.min(92,50+x*.18)), py = Math.max(8,Math.min(92,50+z*.18));
-    const player = root.querySelector('.player-pin'); player.style.left = px+'%'; player.style.top = py+'%'; player.style.transform = `translate(-50%,-50%) rotate(${yaw}rad)`;
-    root.querySelectorAll('.cop-pin').forEach((pin,i)=>{ pin.style.left=(Math.max(9,Math.min(91,px-15+i*23)))+'%'; pin.style.top=(py+10+i*2)+'%'; });
-    const objective=root.querySelector('.objective-pin'); objective.style.left=(x < -20?'72%':'32%'); objective.style.top='31%';
-  }};
-}
+export function makeMinimap(){const root=document.createElement('div');root.className='minimap';root.innerHTML='<div class="map-grid"></div><i class="road r1"></i><i class="road r2"></i><i class="road r3"></i><i class="road r4"></i><span class="north">N</span><b class="map-player">▲</b><b class="cop p1">●</b><b class="cop p2">●</b><b class="objective">◆</b><span class="map-water">LUMEN BAY</span>';const pin=root.querySelector('.map-player');return {root,update(x,z,yaw,active){const clamp=n=>Math.max(8,Math.min(92,n));const xx=clamp(50+x*.18),zz=clamp(50+z*.18);pin.style.left=xx+'%';pin.style.top=zz+'%';pin.style.transform=`rotate(${-yaw*180/Math.PI}deg)`;root.querySelector('.p1').style.cssText=`left:${clamp(xx-12)}%;top:${clamp(zz+9)}%`;root.querySelector('.p2').style.cssText=`left:${clamp(xx+16)}%;top:${clamp(zz+13)}%`;root.querySelector('.objective').style.left=(x<0?73:28)+'%';root.classList.toggle('walking',!active);}};}

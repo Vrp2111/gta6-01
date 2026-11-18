@@ -1,26 +1,3 @@
-// Walking avatar and simple enter/exit vehicle interaction.
 import * as THREE from 'three';
-
-export function createPlayer(scene) {
-  const group = new THREE.Group();
-  const jacket = new THREE.MeshStandardMaterial({ color: 0x27384b, roughness: .82 });
-  const skin = new THREE.MeshStandardMaterial({ color: 0xbc8064, roughness: .9 });
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.4, .86, 4, 7), jacket); body.position.y = 1.05; body.castShadow = true; group.add(body);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(.31, 9, 7), skin); head.position.y = 1.88; head.castShadow = true; group.add(head);
-  const legMat = new THREE.MeshStandardMaterial({ color: 0x202935 });
-  for (const x of [-.19,.19]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.7,6), legMat); leg.position.set(x,.35,.02); group.add(leg); }
-  scene.add(group); return { group, inCar:true, position:group.position, money:38420, health:100, armour:75 };
-}
-
-export function updateWalking(player, input, dt, car) {
-  if (input.take('enter')) {
-    if (player.inCar) { player.inCar = false; player.group.position.copy(car.position).add(new THREE.Vector3(2.7,0,0)); player.group.rotation.y = car.rotation.y; }
-    else if (player.group.position.distanceTo(car.position) < 5) player.inCar = true;
-  }
-  if (player.inCar) { player.group.visible = false; return; }
-  player.group.visible = true;
-  const move = new THREE.Vector3((input.isDown('right')?1:0)-(input.isDown('left')?1:0),0,(input.isDown('reverse')?1:0)-(input.isDown('forward')?1:0));
-  if (move.lengthSq()) { move.normalize().multiplyScalar(dt * (input.isDown('nitro')?9:5)); player.group.position.add(move); player.group.rotation.y = Math.atan2(move.x,move.z); }
-  player.group.position.x = THREE.MathUtils.clamp(player.group.position.x,-164,164); player.group.position.z = THREE.MathUtils.clamp(player.group.position.z,-164,164);
-  if (input.take('interact') && player.group.position.distanceTo(car.position) < 9) player.inCar = true;
-}
+export function createPlayer(scene){const group=new THREE.Group();const part=(geometry,color,y,x=0)=>{const m=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color}));m.position.set(x,y,0);m.castShadow=true;group.add(m);};part(new THREE.CapsuleGeometry(.35,.65,4,8),0x25364c,1.15);part(new THREE.SphereGeometry(.25,12,8),0xbd8c70,1.95);for(const x of [-.19,.19])part(new THREE.CylinderGeometry(.13,.12,.8,8),0x243342,.42,x);scene.add(group);group.visible=false;return {group,inCar:true,position:group.position,money:38420,health:100,armour:75};}
+export function updateWalking(player,input,dt,car){const distance=player.position.distanceTo(car.position);if(input.take('enter')){if(player.inCar){player.inCar=false;player.position.copy(car.position);player.position.x+=2.7;}else if(distance<5)player.inCar=true;}if(input.take('interact')&&distance<9)player.inCar=true;player.group.visible=!player.inCar;if(player.inCar)return;const d=input.drive(),x=Number(d.right)-Number(d.left),z=Number(d.forward)-Number(d.reverse),length=Math.hypot(x,z)||1;player.position.x=THREE.MathUtils.clamp(player.position.x+x/length*dt*(d.nitro?9:5),-164,164);player.position.z=THREE.MathUtils.clamp(player.position.z+z/length*dt*(d.nitro?9:5),-164,164);if(x||z)player.group.rotation.y=Math.atan2(x,z);}

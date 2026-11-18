@@ -1,11 +1,1 @@
-// AudioContext is created only after a user gesture; synth loop is optional.
-export function createAudio() {
-  let context, oscillator, gain;
-  const start = () => {
-    if (context) return; const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return;
-    context = new Audio(); oscillator = context.createOscillator(); gain = context.createGain();
-    oscillator.type='sawtooth'; oscillator.frequency.value=62; gain.gain.value=.018; oscillator.connect(gain); gain.connect(context.destination); oscillator.start();
-  };
-  addEventListener('pointerdown',start,{once:true}); addEventListener('keydown',start,{once:true});
-  return { update(speed) { if (context && oscillator) oscillator.frequency.setTargetAtTime(52+Math.abs(speed)*2,context.currentTime,.08); }, horn() { start(); if (!context) return; const tone=context.createOscillator(), volume=context.createGain(); tone.frequency.value=390; volume.gain.value=.08; tone.connect(volume); volume.connect(context.destination); tone.start(); tone.stop(context.currentTime+.22); } };
-}
+export function createAudio(){let ctx,engine,siren,engineGain,sirenGain;function init(){if(ctx)return;ctx=new AudioContext();engine=ctx.createOscillator();engine.type='sawtooth';engine.frequency.value=62;engineGain=ctx.createGain();engineGain.gain.value=.018;engine.connect(engineGain).connect(ctx.destination);engine.start();siren=ctx.createOscillator();siren.type='square';sirenGain=ctx.createGain();sirenGain.gain.value=0;siren.connect(sirenGain).connect(ctx.destination);siren.start();}addEventListener('pointerdown',init,{once:true});addEventListener('keydown',init,{once:true});return {update(speed,pursuit){if(!ctx)return;engine.frequency.setTargetAtTime(52+Math.abs(speed)*2,ctx.currentTime,.1);siren.frequency.value=610+Math.sin(ctx.currentTime*8)*160;sirenGain.gain.value=pursuit?.018:0;},horn(){init();const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=390;g.gain.setValueAtTime(.08,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.22);o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+.22);}};}
