@@ -1,29 +1,8 @@
-export const WORLD = { size: 360, seed: 96321, start: [-12, 0], checkpoint: [-3, 78] };
-export const SUNSET = { sky: 0xf4a08f, fog: 0xe99a94, road: 0x434551, sand: 0xe5b88f, ocean: 0x416f84, gold: 0xffd27a };
-export const DISTRICTS = [
-  { name: 'Palm Row', x: -95, z: -88 }, { name: 'Marina Strip', x: 0, z: 10 },
-  { name: 'Old Harbor', x: 80, z: -80 }, { name: 'Neon Mile', x: 90, z: 92 },
-  { name: 'Sunset Causeway', x: -15, z: 142 }
-];
-export const CARS = [
-  { name: 'SOLSTICE GT', color: 0xf27037, speed: 56, class: 'SPORT' },
-  { name: 'TIDELINE S', color: 0x34b5aa, speed: 31, class: 'COUPE' },
-  { name: 'SANDPIPER XL', color: 0xd9c59d, speed: 26, class: 'PICKUP' },
-  { name: 'VIOLET HOUR', color: 0x8560ad, speed: 34, class: 'SEDAN' },
-  { name: 'CLOUDLINE', color: 0xe8e9e2, speed: 25, class: 'VAN' }
-];
-export const POLICE_UNITS = [
-  { name: 'PELICAN-12', mode: 'RAMMING' }, { name: 'HERON-7', mode: 'PURSUIT' }, { name: 'OSPREY-3', mode: 'ROADBLOCK' }
-];
-export const JOBS = [
-  { chapter:'CH 01 — AFTERGLOW', name:'Afterglow', objective:'Keep Mira moving. Meet Dario at the Marina Strip.', stage:3, reward:850, next:'Glass Harbor', dialog:'Two units on our tail. Keep us by the water!' },
-  { chapter:'CH 02 — GLASS HARBOR', name:'Glass Harbor', objective:'Walk the Marina Strip and find Dario’s marker.', stage:3, reward:1200, next:'Open Channel', dialog:'Dario says the harbor lights are still ours.' },
-  { chapter:'CH 03 — OPEN CHANNEL', name:'Open Channel', objective:'Hold the Sunset Causeway. Lose the LBPD tail.', stage:3, reward:1650, next:'Low Tide', dialog:'Keep the channel clear until the signal fades.' },
-  { chapter:'CH 04 — LOW TIDE', name:'Low Tide', objective:'Recover the sealed case from the old seawall.', stage:3, reward:2250, next:'Paper Moon', dialog:'The tide is turning. Take the service road.' },
-  { chapter:'CH 05 — PAPER MOON', name:'Paper Moon', objective:'Deliver Mira’s ledger before the night market closes.', stage:3, reward:2900, next:'Saltwater Saints', dialog:'The names in that book can change everything.' },
-  { chapter:'CH 06 — SALTWATER SAINTS', name:'Saltwater Saints', objective:'Reach the lighthouse before the second patrol.', stage:3, reward:3550, next:'Blue Hour', dialog:'I can see the beacon. Just one more stretch.' },
-  { chapter:'CH 07 — BLUE HOUR', name:'Blue Hour', objective:'Cross Neon Mile and meet the crew at first light.', stage:3, reward:4300, next:'Last Light', dialog:'Blue hour is our window. Keep moving.' },
-  { chapter:'CH 08 — LAST LIGHT', name:'Last Light', objective:'Bring the crew home along the open coast.', stage:3, reward:5000, next:'Free Roam', dialog:'We made it to the other side, Leo.' }
-];
-export const RADIO = [ { station:'LUMEN FM 96.3', song:'Sunset Static' }, { station:'COASTLINE 88.4', song:'Amber Frequency' } ];
-export const OPENING = { chapter:'CH 01 — AFTERGLOW', objective:'Keep Mira moving. Meet Dario at the Marina Strip.', next:'Find the boardwalk entrance', dialog:'Two units on our tail. Keep us by the water!' };
+export const WORLD={seed:96321,size:420,playerStart:{x:-12,z:0},districts:['Palm Row','Marina Strip','Old Harbor','Neon Mile','Sunset Causeway']};
+export const PALETTE={sky:0xf4a28e,sunset:0xffc079,ocean:0x258eaa,sand:0xe8bd8b,road:0x343d4a,gold:0xffc86e,ink:0x14202b};
+export const DISTRICTS=WORLD.districts;
+export const CARS=[{name:'Solstice GT',color:0xf36c32,speed:51},{name:'Tideglass Coupe',color:0x28b9a9,speed:31},{name:'Mariner Utility',color:0xd8c9a8,speed:27,pickup:true},{name:'Violet Crown',color:0x7656b4,speed:34},{name:'Coastline Van',color:0xe9eee8,speed:25,van:true}];
+export const POLICE=['PELICAN-12','HERON-7','OSPREY-3'];
+export const JOBS=[['CH 01 — AFTERGLOW','Keep Mira moving. Meet Dario at the Marina Strip.','Two units on our tail. Keep us by the water!',850,'Glass Harbor'],['CH 02 — GLASS HARBOR','Find the signal hidden beneath the boardwalk.','Dario says the harbor lights are a map.',1200,'Open Channel'],['CH 03 — OPEN CHANNEL','Hold the Sunset Causeway and lose the LBPD tail.','Keep the channel open until I call it.',1650,'Low Tide'],['CH 04 — LOW TIDE','Recover the ledger before the tide turns.','The old pier still has a quiet side.',2100,'Paper Moon'],['CH 05 — PAPER MOON','Trade the false manifest for the real one.','Trust the ink, not the courier.',2750,'Saltwater Saints'],['CH 06 — SALTWATER SAINTS','Follow the cash through the marina.','Everyone leaves a wake, Leo.',3400,'Blue Hour'],['CH 07 — BLUE HOUR','Get the crew across the county line.','One clean run and we are clear.',4200,'Last Light'],['CH 08 — LAST LIGHT','Bring the final witness home.','Meet me where the bay catches fire.',5000,'Free Roam']].map((x,i)=>({number:i+1,chapter:x[0],objective:x[1],dialogue:x[2],reward:x[3],next:x[4]}));
+export const RADIO=[{name:'LUMEN FM',frequency:'96.3',song:'Sunset Static'},{name:'COASTLINE GOLD',frequency:'88.9',song:'Blue on Blue'}];
+export const OPENING={chapter:'CH 01 — AFTERGLOW',objective:'Keep Mira moving. Meet Dario at the Marina Strip.',next:'Find the boardwalk entrance',dialogue:'Two units on our tail. Keep us by the water!'};

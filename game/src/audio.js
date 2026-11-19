@@ -1,12 +1,1 @@
-export function createAudio() {
-  let context=null,engine=null,siren=null,engineGain=null,sirenGain=null,started=false;
-  function start() {
-    if(started)return; started=true;
-    const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
-    context=new Audio(); engine=context.createOscillator();engine.type='sawtooth';engine.frequency.value=62;engineGain=context.createGain();engineGain.gain.value=.018;engine.connect(engineGain).connect(context.destination);engine.start();
-    siren=context.createOscillator();siren.type='square';siren.frequency.value=740;sirenGain=context.createGain();sirenGain.gain.value=0;siren.connect(sirenGain).connect(context.destination);siren.start();
-    if(context.state==='suspended')context.resume();
-  }
-  window.addEventListener('pointerdown',start,{once:true});window.addEventListener('keydown',start,{once:true});
-  return {update(speed,pursuit){if(!context)return;engine.frequency.setTargetAtTime(62+Math.abs(speed)*2.25,context.currentTime,.06);sirenGain.gain.setTargetAtTime(pursuit?.012:0,context.currentTime,.12);siren.frequency.setTargetAtTime(620+Math.sin(context.currentTime*7)*170,context.currentTime,.08);},horn(){if(!context)return;const osc=context.createOscillator(),gain=context.createGain();osc.type='sine';osc.frequency.value=390;gain.gain.value=.08;osc.connect(gain).connect(context.destination);osc.start();gain.gain.exponentialRampToValueAtTime(.001,context.currentTime+.22);osc.stop(context.currentTime+.23);}};
-}
+export function createAudio(){let ctx=null,engine=null,siren=null;const start=()=>{if(ctx)return;try{ctx=new AudioContext();engine=ctx.createOscillator();engine.type='sawtooth';engine.frequency.value=62;const eg=ctx.createGain();eg.gain.value=.012;engine.connect(eg).connect(ctx.destination);engine.start();siren=ctx.createOscillator();siren.type='square';siren.frequency.value=540;const sg=ctx.createGain();sg.gain.value=0;siren.connect(sg).connect(ctx.destination);siren.start();siren._gain=sg}catch{}};window.addEventListener('pointerdown',start,{once:true});window.addEventListener('keydown',start,{once:true});return{update(speed,pursuit){start();if(engine)engine.frequency.setTargetAtTime(62+Math.abs(speed)*2.6,ctx.currentTime,.08);if(siren){siren._gain.gain.setTargetAtTime(pursuit?.012:0,ctx.currentTime,.08);siren.frequency.setTargetAtTime(500+Math.sin(performance.now()/180)*110,ctx.currentTime,.04)}},horn(){start();if(!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=390;g.gain.value=.08;o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+.22)}}}

@@ -1,34 +1,3 @@
-import * as THREE from 'three';
-import { CARS, JOBS, WORLD } from './config.js';
-import { makeVehicle } from './vehicles.js';
-import { createPolice } from './police.js';
-
-const params=new URLSearchParams(location.search);
-export const shotName=params.get('shot')||'chase';
-export const shotSeed=Number(params.get('seed')||WORLD.seed);
-export function stageShot(scene,player,ui,camera) {
-  const car=makeVehicle(scene,CARS[0]),pursuit=createPolice(scene,car),state={screen:shotName==='start'?'title':'game',time:0};
-  car.position.set(0,.03,0);car.rotation.y=0;
-  if(shotName==='chase') {
-    car.position.set(0,.03,0); car.userData.speed=82;
-    pursuit.units[0].vehicle.position.set(-4.6,.03,10);pursuit.units[1].vehicle.position.set(5,.03,17);pursuit.units[2].vehicle.position.set(-5,.03,29);
-    pursuit.aircraft.group.position.set(2,20,27); pursuit.aircraft.group.visible=true;
-    ui.setMission('CH 03 — OPEN CHANNEL','Hold the Sunset Causeway. Lose the LBPD tail.','03 / 08');ui.setStars(4);
-    camera.position.set(0,8.4,-15.5);camera.lookAt(0,1.2,11);
-  } else if(shotName==='mission') {
-    car.position.set(-1,.03,0);car.userData.speed=45;
-    pursuit.units[0].vehicle.position.set(-5,.03,12);pursuit.units[1].vehicle.position.set(5,.03,19);pursuit.units[2].vehicle.position.set(-5,.03,29);
-    pursuit.aircraft.group.visible=false;ui.setMission(JOBS[0].chapter,'Bring the Solstice across the Sunset Causeway.','03 / 08');ui.setStars(1);
-    camera.position.set(-1,8.2,-15);camera.lookAt(0,1,12);
-  } else if(shotName==='onfoot') {
-    car.position.set(-2,.03,2);car.rotation.y=-.22;car.userData.speed=0;
-    player.inCar=false;player.group.visible=true;player.position.set(-4.85,.05,2.2);player.group.rotation.y=-.45;
-    pursuit.units.forEach(u=>u.vehicle.visible=false);pursuit.aircraft.group.visible=false;
-    ui.setMission('CH 02 — GLASS HARBOR','Walk the Marina Strip and find Dario’s marker.','02 / 08');ui.setStars(0);
-    camera.position.set(-10,5.8,-6);camera.lookAt(-1.5,1.1,6);
-  } else if(shotName==='start') {
-    pursuit.units.forEach(u=>u.vehicle.visible=false);pursuit.aircraft.group.visible=false;
-    camera.position.set(0,28,-56);camera.lookAt(-12,3,0);ui.setStars(0);
-  } else { ui.setStars(0); }
-  return {car,police:pursuit.units,helicopter:pursuit.aircraft,pursuit,state,shot:shotName,update(time){state.time=time;if(shotName==='chase'&&state.screen==='game'){car.position.x=Math.sin(time*.63)*1.15;car.position.z=Math.sin(time*.55)*.8;car.rotation.y=Math.sin(time*.55)*.035;}},ready(){requestAnimationFrame(()=>requestAnimationFrame(()=>{window.__shotReady=true;}));}};
-}
+import {CARS} from './config.js';import {makeVehicle} from './vehicles.js';import {createPolice} from './police.js';import * as THREE from 'three';
+const q=new URLSearchParams(location.search);export const shotName=q.get('shot')||'chase';export const shotSeed=Number(q.get('seed')||96321);
+export function stageShot(scene,player,ui,camera){const car=makeVehicle(scene,CARS[0]);car.position.set(-12,0,4);car.rotation.y=0;const pursuit=createPolice(scene,car),shot=shotName;const states={chase:{x:-12,z:4,stars:4,chapter:'CH 03 — OPEN CHANNEL',objective:'Hold the Sunset Causeway. Lose the LBPD tail.','job':'03 / 08'},mission:{x:-12,z:8,stars:1,chapter:'CH 01 — AFTERGLOW',objective:'Bring the Solstice across the Sunset Causeway.','job':'01 / 08'},onfoot:{x:-20,z:1,stars:0,chapter:'CH 02 — GLASS HARBOR',objective:"Walk the Marina Strip and find Dario's marker.",'job':'02 / 08'},start:{x:-12,z:4,stars:0}};const s=states[shot]||states.chase;car.position.set(s.x,0,s.z);const policeSpots=shot==='chase'?[[-5,0,s.z-4],[5,0,s.z-8],[0,0,s.z-16]]:[[-5,0,s.z-4],[5,0,s.z-9],[0,0,s.z-15]];for(let i=0;i<pursuit.units.length;i++){const unit=pursuit.units[i];unit.car.position.set(...policeSpots[i]);unit.car.rotation.y=0}if(shot==='onfoot'){player.inCar=false;player.group.visible=true;car.position.set(3,0,4);car.rotation.y=.3;player.group.position.set(-1,0,3);for(let i=0;i<4;i++){const person=new THREE.Group(),shirt=new THREE.Mesh(new THREE.CapsuleGeometry(.34,.72,3,6),new THREE.MeshStandardMaterial({color:[0x315d75,0x9f5143,0x44806d,0x8262a2][i]})),head=new THREE.Mesh(new THREE.SphereGeometry(.27,8,7),new THREE.MeshStandardMaterial({color:0xc99474}));shirt.position.y=.95;head.position.y=1.78;person.add(shirt,head);person.position.set(-8+i*3,0,7+(i%2)*2);scene.add(person)}}else player.inCar=true;if(s.chapter){ui.setMission(s.chapter,s.objective,s.job);ui.setStars(s.stars)}const state={car,pursuit,shot};return{...state,update(time){if(shot==='chase')car.position.x=s.x+Math.sin(time*.6)*1.5},ready(){requestAnimationFrame(()=>requestAnimationFrame(()=>window.__shotReady=true))}}}
