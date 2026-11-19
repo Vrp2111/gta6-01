@@ -1,7 +1,48 @@
 import * as THREE from 'three';
-import {CARS} from './config.js';
-import {mulberry32} from './random.js';
-import {makeVehicle} from './vehicles.js';
-import {createPlayer} from './player.js';
-export function createTraffic(scene,seed,count=15){const r=mulberry32(seed+44),cars=[],pedestrians=[],lights=[];for(let i=0;i<count;i++){const car=makeVehicle(scene,CARS[1+i%4]);let axis=i<9?'z':r()<.5?'x':'z',lane=i%2?3.7:-3.7;car.position.set(axis==='z'?lane:Math.round(r()*5-2)*42,0,axis==='x'?lane:Math.round(r()*5-2)*42);if(i<9)car.position.z=-22+i*10.75;if(i===8)car.position.set(-8,0,8);car.rotation.y=axis==='x'?Math.PI/2:0;car.userData.route={axis,velocity:7+r()*6,direction:i%2?1:-1};if(car.userData.route.direction<0)car.rotation.y+=Math.PI;cars.push(car);}for(let i=0;i<18;i++){const p=createPlayer(scene);p.group.visible=true;p.position.set(i<14?(i%2?8:-8):-43+(i-14)*2,0,i<14?-60+i*10:-37+(i-14)*2);p.group.children[0].material.color.set([0x47697d,0xcb877b,0xd5bd82,0x597c68][i%4]);pedestrians.push({group:p.group,base:p.position.clone(),phase:r()*6});}for(let i=0;i<4;i++){const group=new THREE.Group(),post=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,6,6),new THREE.MeshStandardMaterial({color:0x42494d}));post.position.y=3;group.add(post);const head=new THREE.Mesh(new THREE.BoxGeometry(.65,1.6,.55),new THREE.MeshStandardMaterial({color:0x202834}));head.position.y=5.7;group.add(head);const bulbs=[0xff463c,0x63ff99].map((c,j)=>{const b=new THREE.Mesh(new THREE.SphereGeometry(.18,8,6),new THREE.MeshStandardMaterial({color:c,emissive:c}));b.position.set(0,6.1-j*.7,-.3);group.add(b);return b;});group.position.set(i%2?6:-6,0,i<2?36:48);scene.add(group);lights.push({group,bulbs});}return {cars,pedestrians,lights};}
-export function updateTraffic(traffic,dt,time){const red=time%12>7;for(const l of traffic.lights){l.bulbs[0].material.emissiveIntensity=red?2:.1;l.bulbs[1].material.emissiveIntensity=red?.1:2;}for(const car of traffic.cars){const route=car.userData.route,axis=route.axis,other=axis==='x'?'z':'x';let speed=route.velocity;for(const ahead of traffic.cars){const delta=(ahead.position[axis]-car.position[axis])*route.direction;if(ahead!==car&&Math.abs(ahead.position[other]-car.position[other])<2&&delta>0&&delta<9)speed=0;}if(red&&Math.abs(car.position[axis]-42)<8)speed=0;car.position[axis]+=speed*dt*route.direction;if(Math.abs(car.position[axis])>158)car.position[axis]*=-1;car.userData.speed=speed;}for(const p of traffic.pedestrians){p.group.position.z=p.base.z+Math.sin(time*.4+p.phase)*1.5;p.group.rotation.z=Math.sin(time*3+p.phase)*.025;}}
+import { CARS } from './config.js';
+import { makeVehicle } from './vehicles.js';
+import { seededRandom } from './random.js';
+
+export function createTraffic(scene,seed=96321,count=14) {
+  const random=seededRandom(seed+91), cars=[], pedestrians=[], lights=[];
+  const slots=[[-2.4,14],[2.4,29],[-2.4,43],[2.4,57],[-2.4,72],[2.4,-20],[-2.4,-37],[2.4,-58]];
+  for(let i=0;i<count;i++) {
+    const spec=CARS[1+Math.floor(random()*(CARS.length-1))], car=makeVehicle(scene,spec);
+    const [x,z]=slots[i]??[(random()-.5)*9,Math.round((random()-.5)*260/20)*20];
+    car.position.set(x,.03,z); car.rotation.y=(z<0?Math.PI:0); car.userData.speed=spec.speed*.24; car.userData.aiLane=x;
+    cars.push(car);
+  }
+  const torsoMat=[0x42769a,0xc46750,0x3f8a77,0x8a638b,0xd3a548].map(color=>new THREE.MeshStandardMaterial({color,roughness:.9}));
+  for(let i=0;i<18;i++) {
+    const group=new THREE.Group(), x=i===0?-8.6:(i<8?(i%2?-10.2:10.2):(random()-.5)*55), z=i===0?5.2:(i<8?-58+i*16:(random()-.5)*230);
+    const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.31,.85,3,6),torsoMat[i%torsoMat.length]); torso.position.y=1.15; group.add(torso);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(.28,8,6),new THREE.MeshStandardMaterial({color:0xd5a77f})); head.position.y=1.9; group.add(head);
+    const legMat=new THREE.MeshStandardMaterial({color:0x333b4c});
+    for(const side of [-1,1]) { const leg=new THREE.Mesh(new THREE.CylinderGeometry(.09,.1,.65,6),legMat); leg.position.set(side*.14,.4,0); group.add(leg); }
+    group.position.set(x,.1,z); group.userData={baseZ:z,phase:random()*6.28,walker:i<8}; group.traverse(o=>{if(o.isMesh)o.castShadow=true;}); scene.add(group); pedestrians.push(group);
+  }
+  const red=new THREE.MeshStandardMaterial({color:0x6e2624,emissive:0x7c1511,emissiveIntensity:.4}), green=new THREE.MeshStandardMaterial({color:0x245a42,emissive:0x21884d,emissiveIntensity:.3});
+  for(const z of [-80,0,80]) for(const x of [-8,8]) {
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.09,.12,5,6),new THREE.MeshStandardMaterial({color:0x41454a})); pole.position.set(x,2.5,z); scene.add(pole);
+    const head=new THREE.Mesh(new THREE.BoxGeometry(.55,1.25,.52),new THREE.MeshStandardMaterial({color:0x252b31})); head.position.set(x,5,z); scene.add(head);
+    const lamps=[]; for(let j=0;j<2;j++){const m=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),j?green:red);m.position.set(x,5.28-j*.55,z+.29);scene.add(m);lamps.push(m);}
+    lights.push({lamps,phase:lights.length*.7});
+  }
+  return {cars,pedestrians,lights,seed};
+}
+export function updateTraffic(traffic,dt,time) {
+  for(const light of traffic.lights) { const green=Math.sin(time*.32+light.phase)>-.35; light.lamps[0].material.emissiveIntensity=green?.08:1.5; light.lamps[1].material.emissiveIntensity=green?1.3:.08; }
+  for(let i=0;i<traffic.cars.length;i++) {
+    const car=traffic.cars[i], d=car.userData, dir=car.rotation.y===Math.PI?-1:1;
+    const ahead=traffic.cars.some((other,j)=>i!==j&&Math.abs(other.position.x-car.position.x)<2&&dir*(other.position.z-car.position.z)>0&&dir*(other.position.z-car.position.z)<10);
+    const redLight=Math.abs(car.position.z%80)<5&&Math.sin(time*.32+i)>.35;
+    const target=ahead||redLight?0:d.spec.speed*.24;
+    d.speed=THREE.MathUtils.lerp(d.speed,target,dt*(ahead?1.4:.35));
+    car.position.z+=dir*d.speed*dt*.34;
+    if(car.position.z>174)car.position.z=-174; if(car.position.z< -174)car.position.z=174;
+  }
+  for(const walker of traffic.pedestrians) {
+    walker.position.z=walker.userData.baseZ+Math.sin(time*.7+walker.userData.phase)*.7;
+    walker.rotation.y=Math.sin(time*.45+walker.userData.phase)*.3;
+  }
+}

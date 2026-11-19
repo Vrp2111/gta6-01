@@ -1,4 +1,24 @@
-import {JOBS} from './config.js';
-const dialog=['Mira: The causeway is clear. Keep moving.','Dario: You made it before the ferry.','Mira: LBPD is closing behind us.','Mira: Look for the pink sign.','Dario: Bring it home clean.','Mira: There is only one crossing.','Dario: The beacon is near the water.','Mira: One last ride together.'];
-export const jobs=JOBS.map((job,i)=>({...job,stage:1,dialog:dialog[i]}));
-export function createJobRun(car,hud,player){const state={active:true,complete:false,chapter:JOBS[0].chapter,stage:1,checkpoint:{x:-3.7,z:78},reward:0,nextJob:'Glass Harbor',elapsed:0,distance:0};window.__jobState=state;hud.setMission(state.chapter,JOBS[0].objective,'01 / 08');return {state,update(dt,autopilot){if(state.active){state.elapsed+=dt;if(autopilot){car.position.x+=(-3.7-car.position.x)*Math.min(1,dt*6);car.position.z+=90*dt;car.userData.speed=90;}state.distance=Number(Math.hypot(car.position.x+3.7,car.position.z-78).toFixed(1));if(state.distance<8){state.active=false;state.complete=true;state.stage=3;state.reward=850;player.money+=850;state.elapsed=Number(state.elapsed.toFixed(2));state.completionTime=state.elapsed;hud.setMission('JOB COMPLETE · +$850','Afterglow delivered. Mira is safe at the Marina Strip.','03 / 03');document.body.dataset.jobComplete='true';}}}};}
+import * as THREE from 'three';
+import { JOBS, WORLD } from './config.js';
+
+export const STORY_JOBS=JOBS;
+export function createJobRun(car,hud,player) {
+  const checkpoint=new THREE.Vector3(-3.7,0,78), origin=new THREE.Vector3(-12,0,0);
+  const state={active:true,complete:false,chapter:JOBS[0].chapter,job:JOBS[0].name,stage:1,reward:0,next:JOBS[0].next,time:0,completedInSeconds:0,distance:Number(origin.distanceTo(checkpoint).toFixed(1)),initialDistance:Number(origin.distanceTo(checkpoint).toFixed(1)),checkpoint:{x:-3.7,z:78}};
+  window.__jobState=state; hud.setMission(JOBS[0].chapter,JOBS[0].objective,'01 / 08');
+  return {state,update(dt,autopilot=false) {
+    if(!state.active)return state;
+    state.time+=dt;
+    if(autopilot) {
+      const dx=checkpoint.x-car.position.x,dz=checkpoint.z-car.position.z,dist=Math.hypot(dx,dz);
+      if(dist>0.01) { const step=Math.min(dist,18*dt); car.position.x+=dx/dist*step; car.position.z+=dz/dist*step; car.rotation.y=Math.atan2(dx,dz); car.userData.speed=50; }
+    }
+    const distance=Math.hypot(checkpoint.x-car.position.x,checkpoint.z-car.position.z); state.distance=Number(distance.toFixed(1));
+    if(distance<8) {
+      state.active=false; state.complete=true; state.stage=3; state.reward=850; state.completedInSeconds=Number(state.time.toFixed(2));
+      state.next='Glass Harbor'; player.money+=850; state.money=player.money;
+      document.body.dataset.jobComplete='true'; hud.setMission('JOB COMPLETE · +$850','Afterglow delivered. Mira is safe at the Marina Strip.','03 / 03');
+    }
+    return state;
+  }};
+}
