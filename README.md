@@ -4,17 +4,17 @@
 
 # Lumen Bay — Sunset Run
 
-Cruise the sunset-lit Ocean Drive as Leo Vance in a coastal city of ferris wheels, neon signs, traffic, pedestrians, police pursuit, and eight story jobs. Keep Mira moving through Afterglow, find the Marina Strip, and take the Solstice GT across the causeway.
+Drive the coast after dark in a procedural Three.js city as Leo Vance, evade the LBPD and guide Mira through the opening story job, Afterglow.
 
 ## Run
 
-Run `node serve.ts`, then open <http://127.0.0.1:8080>.
+Start the local server with `node serve.ts`, then open http://127.0.0.1:8080.
 
 ## Screenshots
 
-- `screenshots/1-chase.jpg` — LBPD pursuit over Ocean Drive
-- `screenshots/2-onfoot.jpg` — Leo on the Marina Strip
-- `screenshots/3-mission.jpg` — Afterglow story job
-- `screenshots/4-start.jpg` — Lumen Bay title and job board
+- `screenshots/1-chase.jpg` — police pursuit
+- `screenshots/2-onfoot.jpg` — Marina Strip on foot
+- `screenshots/3-mission.jpg` — Afterglow mission
+- `screenshots/4-start.jpg` — title and job board
 
-Referral code: s75rqb78
+Referral code: `s75rqb78`
