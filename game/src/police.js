@@ -1,6 +1,43 @@
 import * as THREE from 'three';
-import {makeVehicle} from './vehicles.js';
-import {POLICE} from './config.js';
-function makeAircraft(scene){const group=new THREE.Group();const body=new THREE.MeshStandardMaterial({color:0x404954,metalness:.5,roughness:.5});function box(w,h,d,x,y,z,mat=body){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);group.add(m);return m;}box(2.3,1.5,4,0,0,0);box(2.15,1.1,1.4,0,.1,1.8,new THREE.MeshStandardMaterial({color:0x18333e,metalness:.8,roughness:.2}));box(.45,.5,5,0,.1,-3.5);box(.25,1.8,1.4,0,.65,-5.4);const rotor=new THREE.Group();rotor.position.y=1.2;for(let i=0;i<2;i++){const blade=new THREE.Mesh(new THREE.BoxGeometry(11,.07,.25),body);blade.rotation.y=i*Math.PI/2;rotor.add(blade);}group.add(rotor);box(2,.1,.1,0,.8,-5.5);for(let x of [-1.2,1.2]){box(.12,.12,4,x,-1.2,0);box(.1,.7,.1,x,-.8,0);}const cone=new THREE.Mesh(new THREE.ConeGeometry(3.5,8,16,1,true),new THREE.MeshBasicMaterial({color:0xffdfaa,transparent:true,opacity:.07,depthWrite:false}));cone.position.y=-4.6;group.add(cone);const light=new THREE.PointLight(0xffdb9e,25,15);light.position.y=-1.5;group.add(light);scene.add(group);return {group,rotor};}
-export function createPolice(scene,car){const offsets=[[-5.1,-4.8],[5.1,-7.5],[6.8,5.8]],units=offsets.map(([x,z],i)=>{const vehicle=makeVehicle(scene,{name:POLICE[i],color:[0xd7cbaa,0xf1eadb,0xe3e4de][i],speed:60},true);vehicle.position.copy(car.position).add(new THREE.Vector3(x,0,z));return {name:POLICE[i],car:vehicle,offset:new THREE.Vector3(x,0,z)};});return {units,aircraft:makeAircraft(scene),car};}
-export function updatePolice(pursuit,seconds,wanted){const rows=pursuit.units.map((u,i)=>{u.car.visible=wanted>0;const phase=seconds%12,ram=i===0&&phase<5,target=pursuit.car.position.clone().add(u.offset);if(ram)target.x+=1.1;u.car.position.lerp(target,.22);u.car.rotation.y=pursuit.car.rotation.y;u.car.userData.sirens.forEach((m,j)=>m.material.emissiveIntensity=(Math.floor(seconds*7)+j)%2?3.8:.25);return {name:u.name,status:ram?'RAMMING':i===2&&phase>8?'ROADBLOCK':'PURSUIT',distance:(u.car.position.distanceTo(pursuit.car.position)/1000).toFixed(2)};});const a=pursuit.aircraft;a.group.visible=wanted>=3;a.group.position.copy(pursuit.car.position).add(new THREE.Vector3(1+Math.sin(seconds)*.7,8.3+Math.sin(seconds*.8)*.3,15));a.rotor.rotation.y=seconds*35;return rows;}
+import { CARS, POLICE_UNITS } from './config.js';
+import { makeVehicle } from './vehicles.js';
+
+export function makeAircraft(scene) {
+  const group=new THREE.Group(), body=new THREE.MeshStandardMaterial({color:0x82909a,emissive:0x182027,emissiveIntensity:.35,metalness:.12,roughness:.48}), glass=new THREE.MeshStandardMaterial({color:0xa5fff0,emissive:0x17666b,emissiveIntensity:1.1,metalness:.1,roughness:.16,transparent:true,opacity:.96});
+  const cube=(geo,mat,pos)=>{const m=new THREE.Mesh(geo,mat);m.position.set(...pos);m.castShadow=true;group.add(m);return m;};
+  cube(new THREE.BoxGeometry(2.8,1.25,4.5),body,[0,0,0]); cube(new THREE.BoxGeometry(2.3,1,1.8),glass,[0,.22,1.5]);
+  cube(new THREE.BoxGeometry(.5,.5,4),body,[0,.18,-3.25]); cube(new THREE.BoxGeometry(1.5,.22,.5),body,[0,.2,-5.3]);
+  const rotor=new THREE.Group(); rotor.position.y=.8; group.add(rotor);
+  for(const angle of [0,Math.PI/2]) { const blade=cube(new THREE.BoxGeometry(angle?7.4:.3,.09,angle?.3:.3),new THREE.MeshStandardMaterial({color:0xffedcf,emissive:0x725534,emissiveIntensity:.55}),[0,0,0]); blade.rotation.y=angle; rotor.add(blade); }
+  const tailRotor=cube(new THREE.BoxGeometry(.12,1.5,.08),new THREE.MeshStandardMaterial({color:0xe5d3b4}),[0,.25,-5.2]);
+  const tailBlade=cube(new THREE.BoxGeometry(.95,.12,.08),new THREE.MeshStandardMaterial({color:0xe5d3b4}),[0,.25,-5.2]);
+  for(const [x,z,color] of [[-1.35,1.5,0x52d6ff],[1.35,1.5,0xff566c]]) { const nav=new THREE.Mesh(new THREE.SphereGeometry(.18,8,6),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:2})); nav.position.set(x,.2,z);group.add(nav); }
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(3.4,12,20,1,true),new THREE.MeshBasicMaterial({color:0xffe7a5,transparent:true,opacity:.11,side:THREE.DoubleSide,depthWrite:false})); cone.position.set(0,-7,0); cone.rotation.x=Math.PI; group.add(cone);
+  const glow=new THREE.PointLight(0xffd89b,2,28); glow.position.set(0,-.35,1); group.add(glow);
+  group.scale.setScalar(1.5); scene.add(group); return {group,rotor,tailRotor,tailBlade};
+}
+export function createPolice(scene,car) {
+  const units=POLICE_UNITS.map((spec,i)=>{
+    const vehicle=makeVehicle(scene,{...CARS[0],name:spec.name,color:0xf0eee5,speed:46},true);
+    vehicle.position.set((i-1)*4.7,.02,-5-i*3); vehicle.rotation.y=0;
+    return {name:spec.name,mode:spec.mode,vehicle};
+  });
+  const aircraft=makeAircraft(scene); aircraft.group.visible=true;
+  return {units,aircraft,car};
+}
+export function updatePolice(pursuit,seconds,wanted=0) {
+  const {car,units,aircraft}=pursuit;
+  units.forEach((unit,i)=>{
+    const offsets=[[-5,-5],[5,-9],[0,-15]][i], targetX=car.position.x+offsets[0],targetZ=car.position.z+offsets[1], alpha=Math.min(1,.8/60);
+    unit.vehicle.position.x=THREE.MathUtils.lerp(unit.vehicle.position.x,targetX,alpha);
+    unit.vehicle.position.z=THREE.MathUtils.lerp(unit.vehicle.position.z,targetZ,alpha);
+    unit.vehicle.position.y=.02; unit.vehicle.rotation.y=car.rotation.y;
+    unit.vehicle.userData.sirens.forEach((lamp,j)=>{lamp.material.emissiveIntensity=Math.sin(seconds*9+j*Math.PI+i)>.0?3.8:.35;});
+    const distance=Math.hypot(car.position.x-unit.vehicle.position.x,car.position.z-unit.vehicle.position.z)/1000;
+    const status=i===0&&seconds%8<2?'RAMMING':i===2&&seconds%12>8?'ROADBLOCK':'PURSUIT';
+    return {name:unit.name,status,distance:`${distance.toFixed(2)} km`};
+  });
+  aircraft.group.visible=wanted>=3;
+  if(aircraft.group.visible) { aircraft.group.position.set(car.position.x-6+Math.sin(seconds*.6),8+Math.sin(seconds*1.1)*.35,car.position.z+13); aircraft.group.rotation.y=car.rotation.y+Math.PI/2; aircraft.rotor.rotation.y=seconds*18; aircraft.tailRotor.rotation.z=seconds*17; aircraft.tailBlade.rotation.z=seconds*17; }
+  return units.map((unit,i)=>({name:unit.name,status:i===0&&seconds%8<2?'RAMMING':i===2&&seconds%12>8?'ROADBLOCK':'PURSUIT',distance:`${(Math.hypot(car.position.x-unit.vehicle.position.x,car.position.z-unit.vehicle.position.z)/1000).toFixed(2)} km`}));
+}
